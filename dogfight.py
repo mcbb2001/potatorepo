@@ -1,5 +1,6 @@
-from pygame import *
+from pygame.locals import *
 import pygame
+import math
 
 pygame.init()
 
@@ -9,8 +10,9 @@ disX = 500
 disY = 600
 playX = disX * 0.5
 playY = disY * 0.5
-playdir = 90
+playdir = 10
 turn = 0
+speed = 5
 
 #colors:
 black = (0,0,0)
@@ -20,10 +22,13 @@ red = (255,0,0)
 #images
 playImg = pygame.image.load('player.90.png')
 tarImg = pygame.image.load('target(1).png')
+playImg = pygame.transform.scale(playImg,(50,50))
 
+#set display properties
 gameDisplay = pygame.display.set_mode((disX,disY))
 pygame.display.set_caption('Dogfight')
 
+#create game clock
 clock = pygame.time.Clock()
 
 class Button(pygame.sprite.Sprite):
@@ -46,38 +51,42 @@ class Button(pygame.sprite.Sprite):
         else: return False
 
 class Player():
-    def __init__(self,playX,playY):
+    def __init__(self,playX,playY,playImg):
         self.x = int(playX)
         self.y = int(playY)
+        self.speed = speed
+        self.img = playImg
+        self.dir = 0
 
     def turn(self,playdir):
-        if(turn == 0):
-            playdir = playdir + 1
-        if(turn == 1):
-            playdir = playdir - 1
+        self.dir += playdir/180*math.pi
 
     def move(self,playdir):
-        playX = speed*(playX + math.cos(playdir))
-        playY = speed*(playY + math.sin(playdir))
-        self.x = int(playX)
-        self.y = int(playY)
+        self.x = self.speed*(self.x + math.cos(self.playdir))
+        self.y = self.speed*(self.y + math.sin(self.playdir))
+    
+    def display(self,screen):
+        screen.blit(self.img, (self.x - int(self.img.get_width() / 2), self.y - int(self.img.get_height() / 2)))
+
+plane = Player(playX,playY,playImg)
 
 while not crashed:
     turn = 0
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type == QUIT:
             crashed = True
-        if event.type == pygame.K_LEFT:
-            turn = 1
-        if event.type == pygame.K_RIGHT:
-            turn = 3
-    gameDisplay.blit(playImg, (int(playX),int(playY)))
-
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                plane.turn(playdir)
+            if event.key == K_RIGHT:
+                plane.turn(playdir)
+    
     gameDisplay.fill(red)
+    plane.display(gameDisplay)
+
         
     pygame.display.update()
     clock.tick(60)
-
 
 pygame.quit()
 quit()
