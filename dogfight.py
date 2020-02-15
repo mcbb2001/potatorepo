@@ -16,23 +16,29 @@ turn = 0
 speed = 2
 bulSpeed = 10
 score = 0
+rectHeight = 30
 
 #colors:
 black = (0,0,0)
 white = (255,255,255)
 red = (255,0,0)
 
+gameFont = pygame.font.SysFont('Arial', 30)
+
 #images
+iconImg = pygame.image.load('player.90.png')
 playImg = pygame.image.load('player.0.png')
 tarImg = pygame.image.load('target(1).png')
 bulImg = pygame.image.load('bullet.png')
+iconImg = pygame.transform.scale(iconImg,(32,32))
 playImg = pygame.transform.scale(playImg,(50,50))
 tarImg = pygame.transform.scale(tarImg,(24,24))
 bulImg = pygame.transform.scale(bulImg,(8,8))
 
 #set display properties
-gameDisplay = pygame.display.set_mode((disX,disY))
+pygame.display.set_icon(iconImg)
 pygame.display.set_caption('Dogfight')
+gameDisplay = pygame.display.set_mode((disX,disY))
 
 #create game clock
 clock = pygame.time.Clock()
@@ -80,22 +86,35 @@ class Object():
         screen.blit(rimg, (int(self.x - (rimg.get_width() / 2)), int(self.y - (rimg.get_height() / 2))))
 
     def borderCollision(self,screen):
-        return (self.x - self.get_width()/2 <= 0 or self.y - self.get_height()/2 <= 0 or self.x + self.get_width()/2 >= screen.get_width() or self.y + self.get_height()/2 >= screen.get_height())
+        return (self.x - self.get_width()/2 <= 0 or self.y - self.get_height()/2 <= rectHeight or self.x + self.get_width()/2 >= screen.get_width() or self.y + self.get_height()/2 >= screen.get_height())
 
     def objectCollision(self,other):
         return (other.x-other.get_width() <= self.x and other.x+other.get_width() >= self.x and other.y-other.get_height() <= self.y and other.y+other.get_height() >= self.y)
 
 class Target(Object):
     def __init__(self,tarImg,screen):
-        x = screen.get_width()*random.random()
-        y = screen.get_height()*random.random()
+        x = (screen.get_width()-24)*random.random()+24
+        y = (screen.get_height()-rectHeight)*random.random()+rectHeight
         super(Target, self).__init__(x,y,tarImg)
+    
+    def shot(self,screen):
+        self.x = screen.get_width()*random.random()
+        self.y = screen.get_height()*random.random()
 
+class TopBar():
+    def __init__(self,screen,gameFont,score):
+        self.x = 0
+        self.y = 0
+        self.width = screen.get_width()
+        self.height = rectHeight
 
-
+    def display(self,screen,score):
+        pygame.draw.rect(screen,black,(self.x,self.y,self.width,self.height))
+        screen.blit(gameFont.render('Score: '+str(score),False,red),(0,0))
 
 bullets = []
 
+topBar = TopBar(gameDisplay,gameFont,score)
 plane = Object(playX,playY,playImg)
 target = Target(tarImg,gameDisplay)
 
@@ -122,10 +141,13 @@ while not crashed:
         bullet.display(gameDisplay)
         if bullet.objectCollision(target):
             bullets.remove(bullet)
+            target.shot(gameDisplay)
             score += 1
+            print(score)
             continue
     if plane.borderCollision(gameDisplay):
         crashed = True
+    topBar.display(gameDisplay,score)
     target.display(gameDisplay)
     plane.move(speed)
     plane.display(gameDisplay)
