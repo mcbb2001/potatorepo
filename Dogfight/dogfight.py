@@ -80,6 +80,8 @@ class Object():
 
     def resize(self,speed,playImg):
         self.img = pygame.transform.scale(playImg,(int(58-4*speed),int(58-4*speed)))
+        self.get_width = self.get_rimg().get_width
+        self.get_height = self.get_rimg().get_height
 
     def get_rimg(self):
         return pygame.transform.rotate(self.img, self.dir)
@@ -96,13 +98,13 @@ class Object():
 
 class Target(Object):
     def __init__(self,tarImg,screen):
-        x = (screen.get_width()-12)*random.random()+12
-        y = (screen.get_height()-rectHeight-12)*random.random()+rectHeight+12
+        x = (screen.get_width()-24)*random.random()+24
+        y = (screen.get_height()-rectHeight-24)*random.random()+rectHeight+24
         super(Target, self).__init__(x,y,tarImg,0)
     
     def shot(self,screen):
-        self.x = (screen.get_width()-12)*random.random()+12
-        self.y = (screen.get_height()-rectHeight-12)*random.random()+rectHeight+12
+        self.x = (screen.get_width()-24)*random.random()+24
+        self.y = (screen.get_height()-rectHeight-24)*random.random()+rectHeight+24
 
 class Wall(Object):
     def __init__(self,screen,x,y,width,height):
