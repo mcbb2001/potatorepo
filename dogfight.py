@@ -89,7 +89,7 @@ class Object():
         return (self.x - self.get_width()/2 <= 0 or self.y - self.get_height()/2 <= rectHeight or self.x + self.get_width()/2 >= screen.get_width() or self.y + self.get_height()/2 >= screen.get_height())
 
     def objectCollision(self,other):
-        return (other.x-other.get_width() <= self.x and other.x+other.get_width() >= self.x and other.y-other.get_height() <= self.y and other.y+other.get_height() >= self.y)
+        return (other.x-other.get_width()/2 <= self.x+self.get_width()/2 and other.x+other.get_width()/2 >= self.x-self.get_width()/2 and other.y-other.get_height()/2 <= self.y+self.get_height()/2 and other.y+other.get_height()/2 >= self.y-self.get_height()/2)
 
 class Target(Object):
     def __init__(self,tarImg,screen):
@@ -98,8 +98,12 @@ class Target(Object):
         super(Target, self).__init__(x,y,tarImg)
     
     def shot(self,screen):
-        self.x = screen.get_width()*random.random()
-        self.y = screen.get_height()*random.random()
+        self.x = (screen.get_width()-12)*random.random()+12
+        self.y = (screen.get_height()-rectHeight-12)*random.random()+rectHeight+12
+
+class Wall(Object):
+    def __init__(self,screen,x,y,width,height):
+        super(Wall, self).__init__(x,y,pygame.transform.scale(bulImg,(width,height)))
 
 class TopBar():
     def __init__(self,screen,gameFont,score):
@@ -117,6 +121,10 @@ bullets = []
 topBar = TopBar(gameDisplay,gameFont,score)
 plane = Object(playX,playY,playImg)
 target = Target(tarImg,gameDisplay)
+wall1 = Wall(gameDisplay,150,200,10,100)
+wall2 = Wall(gameDisplay,340,200,10,100)
+wall3 = Wall(gameDisplay,150,400,10,100)
+wall4 = Wall(gameDisplay,340,400,10,100)
 
 pygame.key.set_repeat(100,100)
 
@@ -135,11 +143,16 @@ while not crashed:
                 bullets.append(Object(plane.x,plane.y,bulImg,plane.dir))
     
     gameDisplay.fill(red)
+    while target.objectCollision(wall1) or target.objectCollision(wall2) or target.objectCollision(wall3) or target.objectCollision(wall4):
+        target.shot(gameDisplay)
     for bullet in bullets:
         bullet.move(bulSpeed)
         if bullet.borderCollision(gameDisplay):
             bullets.remove(bullet)
             continue
+        if bullet.objectCollision(wall1) or bullet.objectCollision(wall2) or bullet.objectCollision(wall3) or bullet.objectCollision(wall4):
+            bullets.remove(bullet)
+            continue 
         bullet.display(gameDisplay)
         if bullet.objectCollision(target):
             bullets.remove(bullet)
@@ -149,6 +162,13 @@ while not crashed:
             continue
     if plane.borderCollision(gameDisplay):
         crashed = True
+    if plane.objectCollision(wall1) or plane.objectCollision(wall2) or plane.objectCollision(wall3) or plane.objectCollision(wall4):
+        crashed = True
+
+    wall1.display(gameDisplay)
+    wall2.display(gameDisplay)
+    wall3.display(gameDisplay)
+    wall4.display(gameDisplay)
     topBar.display(gameDisplay,score)
     target.display(gameDisplay)
     plane.move(speed)
