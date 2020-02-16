@@ -12,7 +12,6 @@ disY = 600
 playX = disX * 0.5
 playY = disY * 0.5
 playdir = 15
-turn = 0
 speed = 2
 bulSpeed = 10
 score = 0
@@ -134,7 +133,6 @@ wall4 = Wall(gameDisplay,disX-160,disY-200,10,100)
 pygame.key.set_repeat(100,100)
 
 while not crashed:
-    turn = 0
     gameDisplay.fill(red)
     for event in pygame.event.get():
         if event.type == QUIT:
