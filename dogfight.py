@@ -93,8 +93,8 @@ class Object():
 
 class Target(Object):
     def __init__(self,tarImg,screen):
-        x = (screen.get_width()-24)*random.random()+24
-        y = (screen.get_height()-rectHeight)*random.random()+rectHeight
+        x = (screen.get_width()-12)*random.random()+12
+        y = (screen.get_height()-rectHeight-12)*random.random()+rectHeight+12
         super(Target, self).__init__(x,y,tarImg)
     
     def shot(self,screen):
@@ -118,19 +118,21 @@ topBar = TopBar(gameDisplay,gameFont,score)
 plane = Object(playX,playY,playImg)
 target = Target(tarImg,gameDisplay)
 
+pygame.key.set_repeat(100,100)
+
 while not crashed:
     turn = 0
     for event in pygame.event.get():
         if event.type == QUIT:
             crashed = True
         if event.type == KEYDOWN:
-            if event.key == K_LEFT:
+            pygame.key.get_pressed()
+            if pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]:
                 plane.turn(playdir)
-            if event.key == K_RIGHT:
+            if pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]:
                 plane.turn(-playdir)
-            if event.key == K_SPACE:
+            if pygame.key.get_pressed()[K_SPACE]:
                 bullets.append(Object(plane.x,plane.y,bulImg,plane.dir))
-
     
     gameDisplay.fill(red)
     for bullet in bullets:
