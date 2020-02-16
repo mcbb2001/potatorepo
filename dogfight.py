@@ -63,7 +63,7 @@ class Button(pygame.sprite.Sprite):
         else: return False
 
 class Object():
-    def __init__(self,playX,playY,playImg,playdir = 0):
+    def __init__(self,playX,playY,playImg,playdir):
         self.x = playX
         self.y = playY
         self.img = playImg
@@ -74,12 +74,13 @@ class Object():
     def turn(self,playdir):
         self.dir += playdir
 
-    def get_rimg(self):
-        return pygame.transform.rotate(self.img, self.dir)
-
-    def move(self,speed):
+    def move(self,speed,playImg):
         self.x += speed*math.cos(self.dir/180*math.pi)
         self.y += speed*-math.sin(self.dir/180*math.pi)
+        self.img = pygame.transform.scale(playImg,(int(58-4*speed),int(58-4*speed)))
+
+    def get_rimg(self):
+        return pygame.transform.rotate(self.img, self.dir)
     
     def display(self,screen):
         rimg = self.get_rimg()
@@ -95,7 +96,7 @@ class Target(Object):
     def __init__(self,tarImg,screen):
         x = (screen.get_width()-12)*random.random()+12
         y = (screen.get_height()-rectHeight-12)*random.random()+rectHeight+12
-        super(Target, self).__init__(x,y,tarImg)
+        super(Target, self).__init__(x,y,tarImg,0)
     
     def shot(self,screen):
         self.x = (screen.get_width()-12)*random.random()+12
@@ -103,7 +104,7 @@ class Target(Object):
 
 class Wall(Object):
     def __init__(self,screen,x,y,width,height):
-        super(Wall, self).__init__(x,y,pygame.transform.scale(bulImg,(width,height)))
+        super(Wall, self).__init__(x,y,pygame.transform.scale(bulImg,(width,height)),0)
 
 class TopBar():
     def __init__(self,screen,gameFont,score):
@@ -119,17 +120,18 @@ class TopBar():
 bullets = []
 
 topBar = TopBar(gameDisplay,gameFont,score)
-plane = Object(playX,playY,playImg)
+plane = Object(playX,playY,playImg,90)
 target = Target(tarImg,gameDisplay)
 wall1 = Wall(gameDisplay,150,200,10,100)
-wall2 = Wall(gameDisplay,340,200,10,100)
-wall3 = Wall(gameDisplay,150,400,10,100)
-wall4 = Wall(gameDisplay,340,400,10,100)
+wall2 = Wall(gameDisplay,disX-160,200,10,100)
+wall3 = Wall(gameDisplay,150,disY-200,10,100)
+wall4 = Wall(gameDisplay,disX-160,disY-200,10,100)
 
 pygame.key.set_repeat(100,100)
 
 while not crashed:
     turn = 0
+    gameDisplay.fill(red)
     for event in pygame.event.get():
         if event.type == QUIT:
             crashed = True
@@ -139,14 +141,18 @@ while not crashed:
                 plane.turn(playdir)
             if pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]:
                 plane.turn(-playdir)
+            if pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]:
+                if speed <= 5:
+                    speed += 0.5
+            if pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]:
+                if speed >= 1:
+                    speed -= 0.5
             if pygame.key.get_pressed()[K_SPACE]:
                 bullets.append(Object(plane.x,plane.y,bulImg,plane.dir))
-    
-    gameDisplay.fill(red)
     while target.objectCollision(wall1) or target.objectCollision(wall2) or target.objectCollision(wall3) or target.objectCollision(wall4):
         target.shot(gameDisplay)
     for bullet in bullets:
-        bullet.move(bulSpeed)
+        bullet.move(bulSpeed,bulImg)
         if bullet.borderCollision(gameDisplay):
             bullets.remove(bullet)
             continue
@@ -171,7 +177,7 @@ while not crashed:
     wall4.display(gameDisplay)
     topBar.display(gameDisplay,score)
     target.display(gameDisplay)
-    plane.move(speed)
+    plane.move(speed,playImg)
     plane.display(gameDisplay)
     pygame.display.update()
     clock.tick(60)
