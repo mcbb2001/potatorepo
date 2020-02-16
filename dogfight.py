@@ -77,6 +77,8 @@ class Object():
     def move(self,speed,playImg):
         self.x += speed*math.cos(self.dir/180*math.pi)
         self.y += speed*-math.sin(self.dir/180*math.pi)
+
+    def resize(self,speed,playImg):
         self.img = pygame.transform.scale(playImg,(int(58-4*speed),int(58-4*speed)))
 
     def get_rimg(self):
@@ -178,6 +180,7 @@ while not crashed:
     topBar.display(gameDisplay,score)
     target.display(gameDisplay)
     plane.move(speed,playImg)
+    plane.resize(speed,playImg)
     plane.display(gameDisplay)
     pygame.display.update()
     clock.tick(60)
