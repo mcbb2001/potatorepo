@@ -23,16 +23,19 @@ white = (255,255,255)
 red = (255,0,0)
 
 gameFont = pygame.font.SysFont('Arial', 30)
+titleFont = pygame.font.SysFont('Arial', 60)
 
 #images
 iconImg = pygame.image.load('Dogfight/player.90.png')
 playImg = pygame.image.load('Dogfight/player.0.png')
 tarImg = pygame.image.load('Dogfight/target(1).png')
 bulImg = pygame.image.load('Dogfight/bullet.png')
+rubImg = pygame.image.load('Dogfight/rubble.png')
 iconImg = pygame.transform.scale(iconImg,(32,32))
 playImg = pygame.transform.scale(playImg,(50,50))
 tarImg = pygame.transform.scale(tarImg,(24,24))
 bulImg = pygame.transform.scale(bulImg,(8,8))
+rubImg = pygame.transform.scale(rubImg,(50,50))
 
 #set display properties
 pygame.display.set_icon(iconImg)
@@ -42,24 +45,34 @@ gameDisplay = pygame.display.set_mode((disX,disY))
 #create game clock
 clock = pygame.time.Clock()
 
-class Button(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image('button.png', -1)
+class Title():
+    def __init__(self,screen,x,y,text):
+        self.x = x
+        self.y = y
+        self.text = text
 
-    def setCords(self,x,y):
-        self.rect.topleft = x,y
+    def display(self,screen):
+        screen.blit(titleFont.render(self.text,False,black),(self.x,self.y))
 
-    def pressed(self,mouse):
-        if mouse[0] > self.rect.topleft[0]:
-            if mouse[1] > self.rect.topleft[1]:
-                if mouse[0] < self.rect.bottomright[0]:
-                    if mouse[1] < self.rect.bottomright[1]:
-                        return True
-                    else: return False
-                else: return False
-            else: return False
-        else: return False
+class Button():
+    def __init__(self,x,y,xdis,ydis,width,height,text):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.xdis = xdis
+        self.ydis = ydis
+
+    def display(self,screen):
+        pygame.draw.rect(screen,black,(self.x,self.y,self.width,self.height))
+        screen.blit(gameFont.render(self.text,False,red),(self.x+self.xdis,self.y+self.ydis))
+        
+    def clicked(self,screen):
+        clicked = False
+        if pygame.mouse.get_pos()[0] >= self.x and pygame.mouse.get_pos()[0] <= self.x+self.width and pygame.mouse.get_pos()[1] >= self.y and pygame.mouse.get_pos()[1] <= self.y+self.height:
+            clicked = True
+        return clicked
 
 class Object():
     def __init__(self,playX,playY,playImg,playdir):
@@ -72,6 +85,9 @@ class Object():
 
     def turn(self,playdir):
         self.dir += playdir
+
+    def resetRotation(self,direction):
+        self.dir = direction
 
     def move(self,speed,playImg):
         self.x += speed*math.cos(self.dir/180*math.pi)
@@ -120,6 +136,10 @@ class TopBar():
         pygame.draw.rect(screen,black,(self.x,self.y,self.width,self.height))
         screen.blit(gameFont.render('Score: '+str(score),False,red),(0,0))
 
+title = Title(gameDisplay,140,50,'Dogfight')
+startButton = Button(200,135,18,8,100,50,'Start')
+helpButton = Button(200,200,20,8,100,50,'Help')
+
 bullets = []
 
 topBar = TopBar(gameDisplay,gameFont,score)
@@ -130,9 +150,34 @@ wall2 = Wall(gameDisplay,disX-160,200,10,100)
 wall3 = Wall(gameDisplay,150,disY-200,10,100)
 wall4 = Wall(gameDisplay,disX-160,disY-200,10,100)
 
+gameOverText = Title(gameDisplay,140,50,'Game Over')
+restartButton = Button(200,135,15,8,100,50,'Retry')
+quitButton = Button(200,265,22,8,100,50,'Quit')
+
 pygame.key.set_repeat(100,100)
 
-while not crashed:
+def start():
+    crashed = False
+    startClicked = False
+    helpClicked = False
+    gameDisplay.fill(red)
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            crashed = True
+        if pygame.mouse.get_pressed()[0]:
+            startClicked = startButton.clicked(gameDisplay)
+            helpClicked = helpButton.clicked(gameDisplay)
+    title.display(gameDisplay)
+    plane.display(gameDisplay)
+    startList = [crashed,startClicked,helpClicked]
+    startButton.display(gameDisplay)
+    helpButton.display(gameDisplay)
+    return startList
+
+def run(score,speed):
+    playerImg = playImg
+    died = False
+    crashed = False
     gameDisplay.fill(red)
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -169,21 +214,76 @@ while not crashed:
             print(score)
             continue
     if plane.borderCollision(gameDisplay):
-        crashed = True
+        died = True
     if plane.objectCollision(wall1) or plane.objectCollision(wall2) or plane.objectCollision(wall3) or plane.objectCollision(wall4):
-        crashed = True
-
+        died = True
+    if died:
+        playerImg = rubImg
+        speed = 0
+        plane.resetRotation(90)
     wall1.display(gameDisplay)
     wall2.display(gameDisplay)
     wall3.display(gameDisplay)
     wall4.display(gameDisplay)
     topBar.display(gameDisplay,score)
     target.display(gameDisplay)
-    plane.move(speed,playImg)
-    plane.resize(speed,playImg)
+    plane.move(speed,playerImg)
+    plane.resize(speed,playerImg)
+    runList = [crashed,score,speed,died]
     plane.display(gameDisplay)
+    return runList
+
+def gameOver(score):
+    crashed = False
+    retryClicked = False
+    helpClicked = False
+    quitClicked = False
+    gameDisplay.fill(red)
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            crashed = True
+        if pygame.mouse.get_pressed()[0]:
+            retryClicked = restartButton.clicked(gameDisplay)
+            helpClicked = helpButton.clicked(gameDisplay)
+            quitClicked = quitButton.clicked(gameDisplay)
+    crashed = quitClicked
+    gameOverText.display(gameDisplay)
+    restartButton.display(gameDisplay)
+    helpButton.display(gameDisplay)
+    quitButton.display(gameDisplay)
+    quitScreen = [crashed,retryClicked,helpClicked]
+    return quitScreen
+
+crashed = False
+stage = 0
+died = False
+
+while not crashed:
+    if stage == 0:
+        gamestats = start()
+        crashed = gamestats[0]
+        if gamestats[1]:
+            stage = 1
+            continue
+    elif stage == 1:
+        runList = run(score,speed)
+        crashed = runList[0]
+        score = runList[1]
+        speed = runList[2]
+        died = runList[3]
+        if died:
+            stage = 2
+    elif stage == 2:
+        quitScreen = gameOver(score)
+        crashed = quitScreen[0]
+        if quitScreen[1]:
+            stage = 1
+            plane = Object(playX,playY,playImg,90)
+            score = 0
+            speed = 2
+            continue
     pygame.display.update()
     clock.tick(60)
-
-pygame.quit()
-quit()
+    if died:
+        pygame.time.delay(1000)
+        died = False
