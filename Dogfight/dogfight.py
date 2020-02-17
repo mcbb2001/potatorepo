@@ -15,6 +15,7 @@ playdir = 15
 speed = 2
 bulSpeed = 10
 score = 0
+bestScore = 0
 rectHeight = 30
 
 #colors:
@@ -22,8 +23,10 @@ black = (0,0,0)
 white = (255,255,255)
 red = (255,0,0)
 
+#fonts:
 gameFont = pygame.font.SysFont('Arial', 30)
 titleFont = pygame.font.SysFont('Arial', 60)
+endFont = pygame.font.SysFont('Arial', 40)
 
 #images
 iconImg = pygame.image.load('Dogfight/player.90.png')
@@ -126,7 +129,7 @@ class Wall(Object):
         super(Wall, self).__init__(x,y,pygame.transform.scale(bulImg,(width,height)),0)
 
 class TopBar():
-    def __init__(self,screen,gameFont,score):
+    def __init__(self,screen,gameFont):
         self.x = 0
         self.y = 0
         self.width = screen.get_width()
@@ -136,13 +139,39 @@ class TopBar():
         pygame.draw.rect(screen,black,(self.x,self.y,self.width,self.height))
         screen.blit(gameFont.render('Score: '+str(score),False,red),(0,0))
 
+class ScoreBar():
+    def __init__(self,screen,yoff,height):
+        self.x = 0
+        self.y = yoff
+        self.width = screen.get_width()
+        self.height = height
+
+    def display(self,screen,score):
+        pygame.draw.rect(screen,black,(self.x,self.y,self.width,self.height))
+        screen.blit(endFont.render('Score: '+str(score),False,red),(screen.get_width()/2-75,self.y+5))
+
+class BestScore():
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+        self.bestScore = bestScore
+
+    def display(self,screen):
+        screen.blit(gameFont.render('Best Score: '+str(self.bestScore),False,black),(self.x,self.y))
+    
+    def appendBestScore(self,bestScore):
+        self.bestScore = bestScore
+
+    def getBestScore(self):
+        return self.bestScore
+
 title = Title(gameDisplay,140,50,'Dogfight')
 startButton = Button(200,135,18,8,100,50,'Start')
 helpButton = Button(200,200,20,8,100,50,'Help')
 
 bullets = []
 
-topBar = TopBar(gameDisplay,gameFont,score)
+topBar = TopBar(gameDisplay,gameFont)
 plane = Object(playX,playY,playImg,90)
 target = Target(tarImg,gameDisplay)
 wall1 = Wall(gameDisplay,150,200,10,100)
@@ -150,9 +179,11 @@ wall2 = Wall(gameDisplay,disX-160,200,10,100)
 wall3 = Wall(gameDisplay,150,disY-200,10,100)
 wall4 = Wall(gameDisplay,disX-160,disY-200,10,100)
 
-gameOverText = Title(gameDisplay,140,50,'Game Over')
+gameOverText = Title(gameDisplay,100,50,'Game Over')
 restartButton = Button(200,135,15,8,100,50,'Retry')
 quitButton = Button(200,265,22,8,100,50,'Quit')
+scoreBar = ScoreBar(gameDisplay,400,60)
+bestScore = BestScore(160,470)
 
 pygame.key.set_repeat(100,100)
 
@@ -246,11 +277,16 @@ def gameOver(score):
             retryClicked = restartButton.clicked(gameDisplay)
             helpClicked = helpButton.clicked(gameDisplay)
             quitClicked = quitButton.clicked(gameDisplay)
-    crashed = quitClicked
+    if quitClicked:
+        crashed = True
+    if score >= bestScore.getBestScore():
+        bestScore.appendBestScore(score)
+    bestScore.display(gameDisplay)
     gameOverText.display(gameDisplay)
     restartButton.display(gameDisplay)
     helpButton.display(gameDisplay)
     quitButton.display(gameDisplay)
+    scoreBar.display(gameDisplay,score)
     quitScreen = [crashed,retryClicked,helpClicked]
     return quitScreen
 
