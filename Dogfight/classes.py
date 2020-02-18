@@ -65,9 +65,13 @@ class Object():
     def get_xy(self):
         return [self.x,self.y,self.dir]
 
-    def death(self,direct,img):
+    def resetrot(self,direct,img):
         self.dir = direct
         self.img = img
+
+    def resetxy(self,x,y):
+        self.x = x
+        self.y = y
 
     def turn(self,direct):
         self.dir += direct
@@ -98,6 +102,11 @@ class Target(Object):
     def random(self):
         self.x = (self.screen.get_width()-24)*random.random()+24
         self.y = (self.screen.get_height()-24)*random.random()+24
+
+    def tarDisplay(self,x,y):
+        self.x = x
+        self.y = y
+        self.screen.blit(self.get_rimg(),(x,y))
 
 class Wall(Object):
     def __init__(self,screen,x,y,width,height,img):

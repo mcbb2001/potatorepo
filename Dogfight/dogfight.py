@@ -1,5 +1,6 @@
 from pygame.locals import *
 import pygame
+import time
 import math
 import random
 import classes
@@ -17,7 +18,9 @@ bulSpeed = 10
 score = 0
 bestScore = 0
 stage = 0
+storedStage = 0
 died = False
+helpScreenStage = 0
 
 #set display properties
 pygame.display.set_icon(inits.iconImg)
@@ -39,6 +42,13 @@ startButton = classes.Button(screen,screenX/2,135,100,50,inits.black,inits.arial
 helpButton = classes.Button(screen,screenX/2,200,100,50,inits.black,inits.arial30,'Help',inits.red)
 retryButton = classes.Button(screen,screenX/2,135,100,50,inits.black,inits.arial30,'Retry',inits.red)
 quitButton = classes.Button(screen,screenX/2,265,100,50,inits.black,inits.arial30,'Quit',inits.red)
+nextButton = classes.Button(screen,screenX-screenX/4,500,100,50,inits.black,inits.arial30,'Next',inits.red)
+backButton = classes.Button(screen,screenX/4,500,100,50,inits.black,inits.arial30,'Back',inits.red)
+exitButton = classes.Button(screen,50,10,100,50,inits.red,inits.arial30,'Exit',inits.black)
+
+helpScreenLine1 = classes.Text(screen,screenX/2,100,inits.arial30,'helpScreenLine1',inits.black)
+helpScreenLine2 = classes.Text(screen,screenX/2,140,inits.arial30,'helpScreenLine2',inits.black)
+helpScreenLine3 = classes.Text(screen,screenX/2,180,inits.arial30,'helpScreenLine3',inits.black)
 
 bullets = []
 
@@ -120,7 +130,7 @@ def runScreen(score,speed):
         died = True
     if died:
         speed = 0
-        player.death(90,inits.rubImg)
+        player.resetrot(90,inits.rubImg)
     wall1.display()
     wall2.display()
     wall3.display()
@@ -162,12 +172,100 @@ def quitScreen(score,bestScore):
     quitScreenList = [crashed,retryButtonC,helpButtonC,bestScore]
     return quitScreenList
 
+def helpScreen(stage,speed):
+    crashed = False
+    nextButtonC = False
+    backButtonC = False
+    exitButtonC = False
+    screen.fill(inits.red)
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            crashed = True
+        if event.type == KEYDOWN:
+            if pygame.key.get_pressed()[K_ESCAPE]:
+                exitButtonC = True
+            if pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]:
+                if stage == 0:
+                    player.turn(turnRate)
+            if pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]:
+                if stage == 0:
+                    player.turn(-turnRate)
+            if pygame.key.get_pressed()[K_SPACE]:
+                bullet = classes.Object(screen,screenX/2,610,inits.bulImg,90,bulSpeed)
+                bullets.append(bullet)
+        if event.type == MOUSEBUTTONDOWN:
+            nextButtonC = nextButton.clicked()
+            backButtonC = backButton.clicked()
+            if not exitButtonC:
+                exitButtonC = exitButton.clicked()
+    if nextButtonC:
+        if stage < 2:
+            stage += 1
+            player.resetxy(screenX/2,screenY/2+60)
+            player.resetrot(90,inits.playImg)
+            speed = 2
+    if backButtonC:
+        if stage > 0:
+            stage -= 1
+            player.resetxy(screenX/2,screenY/2+60)
+            player.resetrot(90,inits.playImg)
+            speed = 2
+    exitButton.display()
+    helpScreenLine1.display()
+    helpScreenLine2.display()
+    helpScreenLine3.display()
+    if stage == 0:
+        player.resetxy(screenX/2,screenY/2+60)
+        player.resetrot(90,inits.playImg)
+        player.display()
+        helpScreenLine1.appendText('This is the Player')
+        helpScreenLine2.appendText('Control Him with A & D')
+        helpScreenLine3.appendText('or Left & Right')
+        nextButton.display()
+    if stage == 1:
+        target.tarDisplay(screenX/2-12,screenY/2)
+        helpScreenLine1.appendText('This is the Target')
+        helpScreenLine2.appendText('Use Space to Shoot it')
+        helpScreenLine3.appendText('')
+        nextButton.display()
+        backButton.display()
+        for bullet in bullets:
+            bullet.move(bulSpeed)
+            bullet.display()
+            if bullet.objectCollision(target):
+                bullets.remove(bullet)
+                continue
+    if stage == 2:
+        player.resetrot(180,inits.playImg)
+        helpScreenLine1.appendText('This is a Wall')
+        helpScreenLine2.appendText('Don\'t hit it or else')
+        helpScreenLine3.appendText('you will die')
+        backButton.display()
+        if player.objectCollision(wall2):
+            player.resetrot(0,inits.rubImg)
+            speed = 0
+        player.move(speed/2)
+        player.display()
+        wall2.resetxy(150,screenY-240)
+        wall2.display()
+    helpScreenList = [crashed,stage,exitButtonC]
+    return helpScreenList
+
+
 while not crashed:
     if stage == 0:
         startScreenList = startScreen()
         crashed = startScreenList[0]
         if startScreenList[1]:
             stage = 1
+            continue
+        if startScreenList[2]:
+            player.resetxy(screenX/2,screenY/2+60)
+            player.resetrot(90,inits.playImg)
+            speed = 2
+            stage = 3
+            storedStage = 0
+            helpScreenStage = 0
             continue
     elif stage == 1:
         runScreenList = runScreen(score,speed)
@@ -187,6 +285,24 @@ while not crashed:
             speed = 2
             gameScore.appendText('Score: '+str(score))
             player = classes.Object(screen,screenX/2,screenY/2+60,inits.playImg,90,speed)
+            continue
+        if quitScreenList[2]:
+            player.resetxy(screenX/2,screenY/2+60)
+            player.resetrot(90,inits.playImg)
+            speed = 2
+            stage = 3
+            storedStage = 2
+            helpScreenStage = 0
+            continue
+    elif stage == 3:
+        helpScreenList = helpScreen(helpScreenStage,speed)
+        crashed = helpScreenList[0]
+        helpScreenStage = helpScreenList[1]
+        if helpScreenList[2]:
+            player.resetxy(screenX/2,screenY/2+60)
+            player.resetrot(90,inits.playImg)
+            wall2.resetxy(150,screenY-175)
+            stage = storedStage
             continue
     pygame.display.update()
     clock.tick(60)
