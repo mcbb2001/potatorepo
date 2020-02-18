@@ -14,6 +14,7 @@ class Text():
         self.height = self.rendText.get_height()
         self.x = x - self.width/2
         self.y = y
+        self.x2 = x
 
     def display(self):
         self.screen.blit(self.rendText,(self.x,self.y))
@@ -23,8 +24,7 @@ class Text():
         self.rendText = self.font.render(self.text,False,self.textColor)
         self.width = self.rendText.get_width()
         self.height = self.rendText.get_height()
-        self.x = x - self.width/2
-        self.y = y
+        self.x = self.x2 - self.width/2
 
 class Button():
     def __init__(self,screen,x,y,width,height,color,font,text,textColor):
@@ -49,18 +49,21 @@ class Button():
         return (pygame.mouse.get_pressed()[0] and pygame.mouse.get_pos()[0] >= self.x and pygame.mouse.get_pos()[0] <= self.x + self.width and pygame.mouse.get_pos()[1] >= self.y and pygame.mouse.get_pos()[1] <= self.y + self.height)
 
 class Object():
-    def __init__(self,screen,x,y,img,direct):
+    def __init__(self,screen,x,y,img,direct,speed):
         self.screen = screen
         self.img = img
         self.dir = direct
+        self.speed = speed
         self.width = self.get_rimg().get_width()
         self.height = self.get_rimg().get_height()
-        self.x = x - self.width/2
-        self.y = y
-        self.turnY = y
+        self.x = x
+        self.y = y 
 
     def get_rimg(self):
         return pygame.transform.rotate(self.img,self.dir)
+
+    def get_xy(self):
+        return [self.x,self.y,self.dir]
 
     def death(self,direct,img):
         self.dir = direct
@@ -73,29 +76,24 @@ class Object():
         self.speed = speed
         self.x += self.speed*math.cos(self.dir/180*math.pi)
         self.y -= self.speed*math.sin(self.dir/180*math.pi)
-
-    def resize(self):
-        self.img =  pygame.transform.scale(self.img,(int(58-4*self.speed),int(58-4*self.speed)))
-        self.width = self.get_rimg().get_width()
-        self.height = self.get_rimg().get_height()
     
     def display(self):
-        self.screen.blit(self.get_rimg(),(self.x,self.y))
-
-    def axisDisplay(self):
-        self.screen.blit(self.get_rimg(),(self.x,self.turnY))
+        img = self.get_rimg()
+        x = int(self.x-(img.get_width())/2)
+        y = int(self.y-(img.get_height())/2)
+        self.screen.blit(img,(x,y))
 
     def borderCollision(self):
-        return (self.x <= 0 or self.y <= 0 or self.x+self.width >= self.screen.get_width() or self.y+self.height >= self.screen.get_height())
+        return (self.x-self.width/2 <= 0 or self.y-self.height/2 <= 0 or self.x+self.width/2 >= self.screen.get_width() or self.y+self.height/2 >= self.screen.get_height())
 
     def objectCollision(self,other):
-        return (other.x <= self.x+self.width and other.x+other.width >= self.x and other.y <= self.y+self.height and other.y+other.height >= self.y)
+        return (self.x+self.width/2 >= other.x-other.width/2 and self.x-self.width/2 <= other.x+other.width/2 and self.y-self.height/2 <= other.y+other.height/2 and self.y+self.height/2 >= other.y-other.height/2)
 
 class Target(Object):
     def __init__(self,screen,img):
         x = (screen.get_width()-24)*random.random()+24
         y = (screen.get_height()-24)*random.random()+24
-        super(Target, self).__init__(screen,x,y,img,0)
+        super(Target, self).__init__(screen,x,y,img,0,0)
     
     def random(self):
         self.x = (self.screen.get_width()-24)*random.random()+24
@@ -103,4 +101,4 @@ class Target(Object):
 
 class Wall(Object):
     def __init__(self,screen,x,y,width,height,img):
-        super(Wall, self).__init__(screen,x,y,pygame.transform.scale(img,(width,height)),0)
+        super(Wall, self).__init__(screen,x,y,pygame.transform.scale(img,(width,height)),0,0)

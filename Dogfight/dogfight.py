@@ -12,7 +12,7 @@ crashed = False
 screenX = 500
 screenY = 600
 turnRate = 15
-speed = 1
+speed = 2
 bulSpeed = 10
 score = 0
 bestScore = 0
@@ -43,6 +43,7 @@ screen = pygame.display.set_mode((screenX,screenY))
 #create game clock
 clock = pygame.time.Clock()
 
+
 title = classes.Text(screen,screenX/2,50,fonts.arial60,'Dogfight',black)
 gameOver = classes.Text(screen,screenX/2,50,fonts.arial60,'Game Over',black)
 
@@ -56,7 +57,7 @@ quitButton = classes.Button(screen,screenX/2,265,100,50,black,fonts.arial30,'Qui
 
 bullets = []
 
-player = classes.Object(screen,250,350,playImg,90)
+player = classes.Object(screen,screenX/2,screenY/2,playImg,90,speed)
 target = classes.Target(screen,tarImg)
 wall1 = classes.Wall(screen,150,175,10,100,bulImg)
 wall2 = classes.Wall(screen,150,screenY-175,10,100,bulImg)
@@ -64,7 +65,6 @@ wall3 = classes.Wall(screen,screenX-150,175,10,100,bulImg)
 wall4 = classes.Wall(screen,screenX-150,screenY-175,10,100,bulImg)
 topBar = classes.Wall(screen,screenX/2,0,screenX,70,bulImg)
 pygame.key.set_repeat(100,100)
-
 
 def startScreen():
     crashed = False
@@ -102,29 +102,34 @@ def runScreen(score,speed):
             if pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]:
                 if speed >= 1:
                     speed -= 0.5
+            if pygame.key.get_pressed()[K_SPACE]:
+                playerxy = player.get_xy()
+                bullet = classes.Object(screen,playerxy[0],playerxy[1],bulImg,playerxy[2],bulSpeed)
+                bullets.append(bullet)
     while target.objectCollision(wall1) or target.objectCollision(wall2) or target.objectCollision(wall3) or target.objectCollision(wall4) or target.objectCollision(topBar):
         target.random()
     for bullet in bullets:
-        bullet.move(bulSpeed,bulImg)
-        if bullet.borderCollision(screen):
+        bullet.move(bulSpeed)
+        if bullet.borderCollision():
             bullets.remove(bullet)
             continue
         if bullet.objectCollision(wall1) or bullet.objectCollision(wall2) or bullet.objectCollision(wall3) or bullet.objectCollision(wall4) or bullet.objectCollision(topBar):
             bullets.remove(bullet)
             continue 
-        bullet.display(screen)
+        bullet.display()
         if bullet.objectCollision(target):
             bullets.remove(bullet)
-            target.random(screen)
+            target.random()
             score += 1
+            gameScore.appendText('Score: '+str(score))
             continue
-    '''if player.borderCollision():
+    if player.borderCollision():
         died = True
     if player.objectCollision(wall1) or player.objectCollision(wall2) or player.objectCollision(wall3) or player.objectCollision(wall4) or player.objectCollision(topBar):
         died = True
     if died:
         speed = 0
-        player.death(90,rubImg)'''
+        player.death(90,rubImg)
     wall1.display()
     wall2.display()
     wall3.display()
@@ -133,11 +138,10 @@ def runScreen(score,speed):
     gameScore.display()
     target.display()
     player.move(speed)
-    player.resize()
     player.display()
     runScreenList = [crashed,score,speed,died]
     return runScreenList
-'''
+
 def gameOver(score):
     crashed = False
     retryClicked = False
@@ -163,7 +167,7 @@ def gameOver(score):
     scoreBar.display(gameDisplay,score)
     quitScreen = [crashed,retryClicked,helpClicked]
     return quitScreen
-'''
+
 crashed = False
 stage = 0
 died = False
