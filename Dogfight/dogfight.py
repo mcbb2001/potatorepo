@@ -216,7 +216,6 @@ def helpScreen(stage,speed):
     helpScreenLine3.display()
     if stage == 0:
         player.resetxy(screenX/2,screenY/2+60)
-        player.resetrot(90,inits.playImg)
         player.display()
         helpScreenLine1.appendText('This is the Player')
         helpScreenLine2.appendText('Control Him with A & D')
