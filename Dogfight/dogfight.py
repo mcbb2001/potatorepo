@@ -8,21 +8,23 @@ import inits
 
 pygame.init()
 
-#vars:
-crashed = False
-screenX = 500
-screenY = 600
+#Game Mechanics
 turnRate = 15
 speed = 2
 bulSpeed = 10
+
+#Game staging vars
+crashed = False
+died = False
 score = 0
-bestScore = 0
+bestScore = score
 stage = 0
 storedStage = 0
-died = False
 helpScreenStage = 0
 
 #set display properties
+screenX = 500   #Width of screen (affects placement of a lot of game objects)
+screenY = 600   #Height of screen (affects placement of a lot of game objects)
 pygame.display.set_icon(inits.iconImg)
 pygame.display.set_caption('Dogfight')
 screen = pygame.display.set_mode((screenX,screenY))
@@ -30,14 +32,16 @@ screen = pygame.display.set_mode((screenX,screenY))
 #create game clock
 clock = pygame.time.Clock()
 
-
+#Titles
 title = classes.Text(screen,screenX/2,50,inits.arial60,'Dogfight',inits.black)
 gameOver = classes.Text(screen,screenX/2,50,inits.arial60,'Game Over',inits.black)
 
+#Scores
 gameScore = classes.Text(screen,screenX/2,0,inits.arial30,'Score: '+str(score),inits.red)
 endScore = classes.Text(screen,screenX/2,400,inits.arial40,'Score: '+str(score),inits.red)
 bestScoretxt = classes.Text(screen,screenX/2,450,inits.arial40,'Best Score: '+str(bestScore),inits.black)
 
+#Buttons
 startButton = classes.Button(screen,screenX/2,135,100,50,inits.black,inits.arial30,'Start',inits.red)
 helpButton = classes.Button(screen,screenX/2,200,100,50,inits.black,inits.arial30,'Help',inits.red)
 retryButton = classes.Button(screen,screenX/2,135,100,50,inits.black,inits.arial30,'Retry',inits.red)
@@ -46,12 +50,14 @@ nextButton = classes.Button(screen,screenX-screenX/4,500,100,50,inits.black,init
 backButton = classes.Button(screen,screenX/4,500,100,50,inits.black,inits.arial30,'Back',inits.red)
 exitButton = classes.Button(screen,50,10,100,50,inits.red,inits.arial30,'Exit',inits.black)
 
+#Descriptions
 helpScreenLine1 = classes.Text(screen,screenX/2,100,inits.arial30,'helpScreenLine1',inits.black)
 helpScreenLine2 = classes.Text(screen,screenX/2,140,inits.arial30,'helpScreenLine2',inits.black)
 helpScreenLine3 = classes.Text(screen,screenX/2,180,inits.arial30,'helpScreenLine3',inits.black)
 
 bullets = []
 
+#Objects
 player = classes.Object(screen,screenX/2,screenY/2+60,inits.playImg,90,speed)
 target = classes.Target(screen,inits.tarImg)
 wall1 = classes.Wall(screen,150,175,10,100,inits.bulImg)
@@ -60,6 +66,7 @@ wall3 = classes.Wall(screen,screenX-150,175,10,100,inits.bulImg)
 wall4 = classes.Wall(screen,screenX-150,screenY-175,10,100,inits.bulImg)
 topBar = classes.Wall(screen,screenX/2,0,screenX,70,inits.bulImg)
 trimBar = classes.Wall(screen,screenX/2,423,screenX,50,inits.bulImg)
+
 pygame.key.set_repeat(100,100)
 
 def startScreen():
