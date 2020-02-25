@@ -111,3 +111,15 @@ class Target(Object):
 class Wall(Object):
     def __init__(self,screen,x,y,width,height,img):
         super(Wall, self).__init__(screen,x,y,pygame.transform.scale(img,(width,height)),0,0)
+
+class Ai(Object):
+    def __init__(self,screen,x,y,img,direct,speed,lookahead):
+        super(Ai,self).__init__(screen,x,y,img,direct,speed)
+        self.lookX = self.x + lookahead*math.cos(self.dir/180*math.pi)
+        self.lookY = self.y + lookahead*math.sin(self.dir/180*math.pi)
+
+    def aiBorderCollision(self):
+        return (self.lookX-self.width/2 <= 0 or self.lookY-self.height/2 <= 0 or self.lookX+self.width/2 >= self.screen.get_width() or self.lookY+self.height/2 >= self.screen.get_height())
+
+    def aiObjectCollision(self,other):
+        return (self.lookX+self.width/2 >= other.x-other.width/2 and self.lookX-self.width/2 <= other.x+other.width/2 and self.lookY-self.height/2 <= other.y+other.height/2 and self.lookY+self.height/2 >= other.y-other.height/2)
