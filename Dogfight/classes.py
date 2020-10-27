@@ -3,6 +3,8 @@ import pygame
 import math
 import random
 
+#hello
+
 class Text():
     def __init__(self,screen,x,y,font,text,textColor):
         self.screen = screen
